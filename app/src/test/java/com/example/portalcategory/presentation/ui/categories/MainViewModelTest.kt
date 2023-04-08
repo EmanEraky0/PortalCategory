@@ -2,6 +2,7 @@ package com.example.portalcategory.presentation.ui.categories
 
 import com.example.portalcategory.data.api.ApiService
 import com.example.portalcategory.data.repo.FakeMainRepoImpl
+import com.example.portalcategory.data.repo.MainRepoImpl
 import com.example.portalcategory.domain.models.mainCategory.Categories
 import com.example.portalcategory.domain.models.mainCategory.CategoriesData
 import com.example.portalcategory.utils.NetworkHelper
@@ -24,7 +25,7 @@ class MainViewModelTest {
 
     private val apiService = mockk<ApiService>()
     private val networkHelper = mockk<NetworkHelper>()
-    private val repository = mockk<FakeMainRepoImpl>()
+    private val repository = mockk<MainRepoImpl>()
 
 
     @Before
