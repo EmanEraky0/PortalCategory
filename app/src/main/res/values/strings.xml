@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">PortalCategory</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="send">Send</string>
+    <string name="other">اخرى</string>
+    <string name="search">Search....</string>
+    <string name="title">Title</string>
+    <string name="write_need">write need</string>
+    <string name="minute">دقيقة ساعة يوم</string>
+    <string name="date">بتاريخ</string>
+    <string name="startWith">المزاد يبدأ بعد</string>
+    <string name="details">تفاصيل المزاد</string>
+    <string name="name">اسم المزاد</string>
+    <string name="rating">تقييم المزاد</string>
+    <string name="current_value">القيمة الحالية للمزاد</string>
+    <string name="current_tax">القيمة الحالية بعد الضريبة</string>
+    <string name="buy">شراء الان</string>
+    <string name="fury">سعر الشراء الفورى</string>
+    <string name="skip">انسحاب</string>
+    <string name="viewAll">عرض الكل</string>
+    <string name="name_user">اسم المزايد</string>
+    <string name="all_users">المزايدون</string>
+</resources>

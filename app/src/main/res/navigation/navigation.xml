@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation"
+    app:startDestination="@id/mainCategory">
+
+    <fragment
+        android:id="@+id/mainCategory"
+        android:name="com.example.portalcategory.presentation.ui.categories.MainCategoryFragment"
+        android:label="mainCategory"
+        tools:layout="@layout/fragment_main_category" >
+        <action
+            android:id="@+id/action_mainCategory_to_searchCategory"
+            app:destination="@id/searchCategory" />
+        <action
+            android:id="@+id/action_mainCategory_to_detailsCategory"
+            app:destination="@id/detailsCategory" />
+    </fragment>
+
+
+    <dialog
+        android:id="@+id/searchCategory"
+        android:name="com.example.portalcategory.presentation.ui.search.SearchCategoryFragment"
+        android:label="searchCategory"
+        tools:layout="@layout/fragment_search_category" >
+        <argument
+            android:name="options"
+            app:argType="string[]" />
+        <argument
+            android:name="title"
+            app:argType="string" />
+    </dialog>
+
+    <fragment
+        android:id="@+id/detailsCategory"
+        android:name="com.example.portalcategory.presentation.ui.details.CategoryDetailsFragment"
+        android:label="detailsCategory"
+        tools:layout="@layout/fragment_category_details" />
+
+</navigation>
