@@ -1,6 +1,8 @@
 package com.example.portalcategory.presentation.ui.categories
 
-import com.example.portalcategory.data.api.ApiService
+
+import com.example.portalcategory.MainCoroutineRule
+import com.example.portalcategory.MainDispatcherRule
 import com.example.portalcategory.data.repo.FakeMainRepoImpl
 import com.example.portalcategory.domain.models.mainCategory.Categories
 import com.example.portalcategory.domain.models.mainCategory.CategoriesData
@@ -9,33 +11,43 @@ import com.example.portalcategory.utils.Resource
 import io.mockk.coEvery
 import io.mockk.mockk
 import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.test.*
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    @get:Rule
+    val coroutineScope = MainCoroutineRule()
+
+//    private val networkHelper = mockk<NetworkHelper>()
+    private val repository = mockk<FakeMainRepoImpl>()
+
     private lateinit var viewModel: MainViewModel
 
     private lateinit var flow: MutableSharedFlow<Resource<CategoriesData>>
 
-    private val apiService = mockk<ApiService>()
-    private val networkHelper = mockk<NetworkHelper>()
-    private val repository = mockk<FakeMainRepoImpl>()
 
 
     @Before
     fun setup() {
         flow = MutableSharedFlow()
-        viewModel = MainViewModel(repository,networkHelper)
+        viewModel = MainViewModel(repository)
     }
 
 
     @Test
-    fun `test fetch data`() = runBlocking {
+    fun `test fetch data success`() = runTest {
         val categories: ArrayList<Categories> = arrayListOf()
         categories.add(
             Categories(
@@ -47,10 +59,6 @@ class MainViewModelTest {
             )
         )
 
-        val expectedOutput = listOf(
-            Resource.Loading,
-            Resource.Success(CategoriesData(categories))
-        )
         val actualOutput = mutableListOf<Resource<CategoriesData>>()
 
         val expectedFlow = flow {
@@ -61,105 +69,96 @@ class MainViewModelTest {
         coEvery { repository.getAllCats() } returns expectedFlow
         viewModel.getAllCats()
 
-//        // Wait for a longer period to ensure the coroutine has completed
-//        delay(5000)
+        TestCoroutineScope().advanceUntilIdle() // Wait until all coroutines have completed
 
-        viewModel.data?.collect{
+        viewModel.data.collect {
             actualOutput.add(it)
         }
-        assertEquals(expectedOutput, actualOutput)
+        assertEquals(expectedFlow, actualOutput)
+    }
+
+    @Test
+    fun `test  data` () = runTest {
+        val categories: ArrayList<Categories> = arrayListOf()
+        categories.add(
+            Categories(
+                1,
+                "سيارات ودرجات ومستلزماتها",
+                null,
+                "https://mazaady-test.s3.us-east-2.amazonaws.com/categories/1/o0XfOKPJ8qbPv3eTGohQ8lXafJ5nvmOJSQYIFNHW.png",
+                "cars-motorcycles-accessories"
+            )
+        )
+        val mockLoadResponse = Resource.Loading
+        val mockSuccessResponse = Resource.Success(CategoriesData(categories))
+        val mockErrorResponse = Resource.Error("Error occurred")
+        val mockResourceList = listOf(mockLoadResponse ,mockSuccessResponse, mockErrorResponse)
+
+        val resourceFlow = MutableSharedFlow<Resource<CategoriesData>>()
+        launch {
+            mockResourceList.forEach {
+                delay(1000)
+                resourceFlow.emit(it)
+            }
+        }
+
+        val flowCollector = resourceFlow.take(3).toList()
+
+        advanceTimeBy(1000)
+
+        assertTrue( flowCollector[0] is Resource.Loading)
+        advanceTimeBy(2000)
+
+        assertTrue( flowCollector[1] is Resource.Success)
+
+
+        assertTrue(flowCollector[2] is Resource.Error)
+        assertEquals("Error occurred", (flowCollector[2] as Resource.Error).exception)
 
     }
+
+    @Test
+    fun testGetCategoriesSuccess() = coroutineScope.runBlockingTest {
+        val categories: ArrayList<Categories> = arrayListOf()
+        categories.add(
+            Categories(
+                1,
+                "Cars",
+                null,
+                "https://example.com/cars.png",
+                "cars"
+            ),
+        )
+        categories.add(
+            Categories(
+                2,
+                "Books",
+                null,
+                "https://example.com/books.png",
+                "books"
+            )
+        )
+
+
+
+        val expectedFlow = MutableSharedFlow<Resource<CategoriesData>>().apply {
+            emit(Resource.Success(CategoriesData(categories)))
+        }
+
+        coEvery { repository.getAllCats() } returns expectedFlow
+
+
+        viewModel.getAllCats()
+
+        // Wait for the API call to complete
+        delay(1000)
+
+        // Check if the expected output matches the actual output
+        val expectedOutput = expectedFlow.take(1).toList()
+        assertEquals(expectedOutput, viewModel.data.take(1).toList())
+    }
+
+
+
 }
 
-
-//    @get:Rule
-//    var instantTaskExecutorRule = InstantTaskExecutorRule()
-//
-//    private lateinit var viewModel: MainViewModel
-//
-//    @Before
-//    fun setup() {
-//        viewModel = MainViewModel(FakeMainRepoImpl())
-//    }
-//
-//
-//    private val mockCategoriesData = CategoriesData(arrayListOf())
-//
-//    @Test
-//    fun `emitting Resource_Success should update the flow`() = runTest {
-//        // Arrange
-//        val testFlow =  viewModel._data!!
-//        val observer = mock(testFlow::class.java)
-//
-//        // Act
-//        testFlow.emit(Resource.Success(mockCategoriesData))
-//
-//        // Assert
-//        verify(observer).emit(Resource.Success(mockCategoriesData))
-//        assertEquals(Resource.Success(mockCategoriesData), testFlow.replayCache.lastOrNull())
-//    }
-//
-//    @Test
-//    fun `emitting Resource_Loading should update the flow`() = runTest {
-//        // Arrange
-//        val testFlow =  viewModel._data!!
-//        val observer = mock(testFlow::class.java)
-//
-//        // Act
-//        testFlow.emit(Resource.Loading)
-//
-//        // Assert
-//        verify(observer).emit(Resource.Loading)
-//        assertEquals(Resource.Loading, testFlow.replayCache.lastOrNull())
-//    }
-//
-//    @Test
-//    fun `emitting Resource_Error should update the flow`() = runTest {
-//        // Arrange
-//        val testFlow = viewModel._data
-//        val observer = mock( testFlow!!::class.java)
-//        val exception = Exception("Test Exception")
-//
-//        // Act
-//        testFlow.emit(Resource.Error(exception.message.toString()))
-//
-//        // Assert
-//        verify(observer).emit(Resource.Error(exception.message.toString()))
-//        assertEquals(Resource.Error(exception.message.toString()), testFlow.replayCache?.lastOrNull())
-//    }
-
-
-//    @Test
-//    fun getAllCats_returnsCatResponse() = runTest {
-//        viewModel.getAllCats()
-//        viewModel.data?.test {
-//            awaitItem() // ignore default emit (UI Empty)
-//            val result = awaitItem()
-//            assertThat(result).isNotNull()
-//        }
-//    }
-//
-//    @Test
-//    fun getProperties_returnsPropertiesResponse() = runTest {
-//        viewModel.getSubCatId(13)
-//        viewModel.propertiesData.test {
-//            awaitItem()
-//            val result = awaitItem()
-//            assertThat(result).isNotNull()
-//        }
-//    }
-//
-//    @Test
-//    fun getOptions_returnsPropertiesResponse() = runTest {
-//        viewModel.getOptionsById(53)
-//        viewModel.options.test {
-//
-//            val result = awaitItem()
-//            assertThat(result).isNotNull()
-//        }
-//    }
-
-
-//}
-//}

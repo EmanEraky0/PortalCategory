@@ -3,6 +3,7 @@ package com.example.portalcategory.presentation.ui.categories
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.portalcategory.data.repo.MainRepoImpl
+import com.example.portalcategory.data.repo.MainRepository
 import com.example.portalcategory.domain.models.mainCategory.CategoriesData
 import com.example.portalcategory.domain.models.subCategory.PropertiesData
 import com.example.portalcategory.utils.NetworkHelper
@@ -18,12 +19,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val repositoryUseCase: MainRepoImpl,
-    private val networkHelper: NetworkHelper
+    private val repositoryUseCase: MainRepository,
 ) : ViewModel() {
 
-    private var _data: MutableSharedFlow<Resource<CategoriesData>>? = MutableSharedFlow()
-    var data = _data?.asSharedFlow()
+    private var _data: MutableSharedFlow<Resource<CategoriesData>> = MutableSharedFlow()
+    var data = _data.asSharedFlow()
 
     private var _propertiesData: MutableSharedFlow<Resource<ArrayList<PropertiesData>>> =
         MutableSharedFlow()
@@ -44,12 +44,16 @@ class MainViewModel @Inject constructor(
 //    }
 
     fun getAllCats() {
+
         viewModelScope.launch {
-            if (networkHelper.isNetworkConnected()) {
-            repositoryUseCase.getAllCats().collect {
-                _data?.emit(it)
+            withContext(Dispatchers.Default){
+
+//            if (networkHelper.isNetworkConnected()) {
+                repositoryUseCase.getAllCats().collect {
+                    _data.emit(it)
+                }
+//            } else _data.emit(Resource.Error("No internet connection"))
             }
-            } else _data?.emit(Resource.Error("No internet connection"))
         }
     }
 

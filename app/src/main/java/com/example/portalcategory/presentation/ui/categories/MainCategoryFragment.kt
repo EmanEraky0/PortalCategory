@@ -159,7 +159,7 @@ class MainCategoryFragment : Fragment() {
 
     private fun observeAllCategories() {
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.data?.collect {
+            viewModel.data.collect {
                 when (it) {
                     is Resource.Loading -> {
                         binding.loading.isVisible = true
